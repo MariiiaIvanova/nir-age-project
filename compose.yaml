@@ -1,0 +1,58 @@
+x-common: &common
+  build: .
+  image: nir-age:whisper-tiny
+  user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+  environment:
+    HOME: /tmp
+    OMP_NUM_THREADS: "1"
+  shm_size: 1gb
+  init: true
+  volumes:
+    - type: bind
+      source: ${TIMIT_ROOT:?set TIMIT_ROOT}
+      target: /data/timit
+      read_only: true
+      bind: {create_host_path: false}
+    - type: bind
+      source: ${NNCES_AUDIO_ROOT:?set NNCES_AUDIO_ROOT}
+      target: /data/nnces
+      read_only: true
+      bind: {create_host_path: false}
+    - type: bind
+      source: ${NNCES_SCP_ROOT:?set NNCES_SCP_ROOT}
+      target: /data/nnces_scp
+      read_only: true
+      bind: {create_host_path: false}
+    - type: bind
+      source: ${AGEVOX_AUDIO_ROOT:?set AGEVOX_AUDIO_ROOT}
+      target: /data/agevoxceleb
+      read_only: true
+      bind: {create_host_path: false}
+    - type: bind
+      source: ${VOICEBIO_ROOT:?set VOICEBIO_ROOT}
+      target: /data/voicebio
+      read_only: true
+      bind: {create_host_path: false}
+    - type: bind
+      source: ${SENIORTALK_ROOT:?set SENIORTALK_ROOT}
+      target: /data/seniortalk
+      read_only: true
+      bind: {create_host_path: false}
+    - ./benchmark:/fixed:ro
+    - ./weights:/weights
+    - ./output:/output
+
+services:
+  prepare:
+    <<: *common
+    command: ["python", "prepare.py"]
+  train:
+    <<: *common
+    command: ["python", "train.py"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_ID:-0}"]
+              capabilities: [gpu]

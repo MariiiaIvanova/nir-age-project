@@ -1,0 +1,12 @@
+.env
+weights/
+output/
+__pycache__/
+*.pyc
+nir_venv/
+dist/
+
+# Runtime logs and incomplete downloads
+logs/
+*.partial
+*.resume
